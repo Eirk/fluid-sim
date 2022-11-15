@@ -1,3 +1,4 @@
+#include <string.h>
 #include "fast_fluid_dynamics.h"
 
 // const int size = (N_sim + 2) * (N_sim + 2);
@@ -16,10 +17,10 @@ static void set_bnd ( int N, int b, float * x )
         x[IX(i,0 )] = b==2 ? -x[IX(i,1)] : x[IX(i,1)];
         x[IX(i,N+1)] = b==2 ? -x[IX(i,N)] : x[IX(i,N)];
     }
-    x[IX(0 ,0 )] = 0.5*(x[IX(1,0 )]+x[IX(0 ,1)]);
-    x[IX(0 ,N+1)] = 0.5*(x[IX(1,N+1)]+x[IX(0 ,N )]);
-    x[IX(N+1,0 )] = 0.5*(x[IX(N,0 )]+x[IX(N+1,1)]);
-    x[IX(N+1,N+1)] = 0.5*(x[IX(N,N+1)]+x[IX(N+1,N )]);
+    x[IX(0 ,0 )] = 0.5f*(x[IX(1,0 )]+x[IX(0 ,1)]);
+    x[IX(0 ,N+1)] = 0.5f*(x[IX(1,N+1)]+x[IX(0 ,N )]);
+    x[IX(N+1,0 )] = 0.5f*(x[IX(N,0 )]+x[IX(N+1,1)]);
+    x[IX(N+1,N+1)] = 0.5f*(x[IX(N,N+1)]+x[IX(N+1,N )]);
 }
 
 static void add_source(int N, float *x, float *s, float dt)
@@ -57,13 +58,13 @@ static void advect ( int N, int b, float * d, float * d0, float * u, float * v, 
             if (x < 0.5) {
                 x = 0.5; 
             }
-            if (x > N + 0.5) {
-                x = N + 0.5;
+            if (x > N + 0.5f) {
+                x = N + 0.5f;
             } 
             i0 = (int)x; 
             i1 = i0 + 1;
-            if (y < 0.5) y = 0.5; 
-            if (y > N + 0.5) y = N + 0.5; 
+            if (y < 0.5f) y = 0.5f; 
+            if (y > N + 0.5f) y = N + 0.5f; 
             j0 = (int)y; 
             j1 = j0 + 1;
             s1 = x - i0; 
@@ -80,10 +81,10 @@ static void project ( int N, float * u, float * v, float * p, float * div )
 {
     int i, j, k;
     float h;
-    h = 1.0/N;
+    h = 1.0f / N;
     for ( i=1 ; i<=N ; i++ ) {
         for ( j=1 ; j<=N ; j++ ) {
-            div[IX(i,j)] = -0.5*h*(u[IX(i+1,j)]-u[IX(i-1,j)]+v[IX(i,j+1)]-v[IX(i,j-1)]);
+            div[IX(i,j)] = -0.5f*h*(u[IX(i+1,j)]-u[IX(i-1,j)]+v[IX(i,j+1)]-v[IX(i,j-1)]);
             p[IX(i,j)] = 0;
         }
     }
@@ -99,8 +100,8 @@ static void project ( int N, float * u, float * v, float * p, float * div )
     }
     for ( i=1 ; i<=N ; i++ ) {
         for ( j=1 ; j<=N ; j++ ) {
-            u[IX(i,j)] -= 0.5*(p[IX(i+1,j)]-p[IX(i-1,j)])/h;
-            v[IX(i,j)] -= 0.5*(p[IX(i,j+1)]-p[IX(i,j-1)])/h;
+            u[IX(i,j)] -= 0.5f*(p[IX(i+1,j)]-p[IX(i-1,j)])/h;
+            v[IX(i,j)] -= 0.5f*(p[IX(i,j+1)]-p[IX(i,j-1)])/h;
         }
     }
     set_bnd ( N, 1, u ); 
@@ -133,10 +134,18 @@ static void vel_step ( int N, float * u, float * v, float * u0, float * v0, floa
     project ( N, u, v, u0, v0 );
 }
 
-void fast_fluid_solver_init(fast_fluid_solver_t *solver, int N, float *dens0, float *u0, float *v0, float visc, float diff, float dt)
+void fast_fluid_solver_init(fast_fluid_solver_t *solver, int N, float *dens_prev_buf, float *dens_buf, float *u_prev_buf, float *u_buf, float *v_prev_buf, float *v_buf, float visc, float diff, float dt)
 {
     solver->N = N;
-    solver->dens_prev = ;
+    solver->dens_prev = dens_prev_buf;
+    solver->dens = dens_buf;
+    solver->u_prev = u_prev_buf;
+    solver->u = u_buf;
+    solver->v_prev = v_prev_buf;
+    solver->v = v_buf;
+    solver->visc = visc;
+    solver->diff = diff;
+    solver->dt = dt;
 }
 
 void fast_fluid_step(fast_fluid_solver_t *solver, float *dens_prev, float *u_prev, float *v_prev)

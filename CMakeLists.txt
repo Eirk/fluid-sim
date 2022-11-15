@@ -11,3 +11,4 @@ set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 include(CPack)
 
 target_include_directories(fluid-sim PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
+target_sources(fluid-sim PRIVATE fast_fluid_dynamics.c)

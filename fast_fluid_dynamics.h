@@ -1,4 +1,4 @@
-#define N_sim 20 // simulate grid of size NxN
+#define N_sim 32 // simulate grid of size NxN
 #define IX(i,j) ((i)+(N_sim+2)*(j)) // macro to index into 2d grid represented by 1d arrays
 #define SWAP(x0,x) {float *tmp = x0; x0 = x; x = tmp;}
 
@@ -21,5 +21,5 @@ typedef struct {
     float dt;           // time step (seconds)
 } fast_fluid_solver_t;
 
-void fast_fluid_solver_init(fast_fluid_solver_t *solver, int N, float *dens0, float *u0, float *v0, float visc, float diff, float dt);
+void fast_fluid_solver_init(fast_fluid_solver_t *solver, int N, float *dens_prev_buf, float *dens_buf, float *u_prev_buf, float *u_buf, float *v_prev_buf, float *v_buf, float visc, float diff, float dt);
 void fast_fluid_step(fast_fluid_solver_t *solver, float *dens_prev, float *u_prev, float *v_prev);
