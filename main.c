@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <GL/glut.h>
 #include "fast_fluid_dynamics.h"
 
 static fast_fluid_solver_t fluid_solver;
