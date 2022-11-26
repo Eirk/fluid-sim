@@ -1,7 +1,20 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdbool.h>
 #include "SDL/include/SDL.h"
 #include "fast_fluid_dynamics.h"
+
+#define SCREEN_WIDTH 640
+#define SCREEN_HEIGHT 480
+
+//The window we'll be rendering to
+SDL_Window* gWindow = NULL;
+    
+//The surface contained by the window
+SDL_Surface* gScreenSurface = NULL;
+
+//The image we will load and show on the screen
+SDL_Surface* gHelloWorld = NULL;
 
 static fast_fluid_solver_t fluid_solver;
 
@@ -30,18 +43,59 @@ static void draw_rectangle(SDL_Surface* surface, int x, int y, int width, int he
     memset(pixels, 0, size_pixels * sizeof(uint8_t));
 
     int dy, dx;
-    int maxwidth = width * 3;
-    for (dy = y; dy < height; dy++) {
-        for (dx = x; dx < maxwidth; dx += 3) {
-            pixels[dx + (dy * surface->pitch)] = 0;
-            pixels[dx + (dy * surface->pitch) + 1] = 255;
-            pixels[dx + (dy * surface->pitch) + 2] = 0;
+    int maxwidth = x + width;
+    int maxheight = y + height;
+    for (dy = y; dy < maxheight; dy++) {
+        for (dx = x; dx < maxwidth; dx++) {
+            pixels[(dx * surface->format->BytesPerPixel) + (dy * surface->pitch)] = 0;
+            pixels[(dx * surface->format->BytesPerPixel) + (dy * surface->pitch) + 1] = 255;
+            pixels[(dx * surface->format->BytesPerPixel) + (dy * surface->pitch) + 2] = 0;
         }
     }
     memcpy(surface->pixels, pixels, size_pixels);
     free(pixels);
 
     SDL_UnlockSurface(surface);
+}
+
+bool init()
+{
+    //Initialization flag
+    bool success = true;
+
+    //Initialize SDL
+    if( SDL_Init( SDL_INIT_VIDEO ) < 0 )
+    {
+        printf( "SDL could not initialize! SDL_Error: %s\n", SDL_GetError() );
+        success = false;
+    }
+    else
+    {
+        //Create window
+        gWindow = SDL_CreateWindow( "SDL Tutorial", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN );
+        if( gWindow == NULL )
+        {
+            printf( "Window could not be created! SDL_Error: %s\n", SDL_GetError() );
+            success = false;
+        }
+        else
+        {
+            //Get window surface
+            gScreenSurface = SDL_GetWindowSurface( gWindow );
+        }
+    }
+
+    return success;
+}
+
+void close()
+{
+    //Destroy window
+    SDL_DestroyWindow( gWindow );
+    gWindow = NULL;
+
+    //Quit SDL subsystems
+    SDL_Quit();
 }
 
 int main(int argc, char *argv[]) {
@@ -67,26 +121,52 @@ int main(int argc, char *argv[]) {
     //     fast_fluid_step(&fluid_solver, dens_prev_buf, u_prev_buf, v_prev_buf);
     // }
 
-    SDL_Init(SDL_INIT_VIDEO);
+    //Start up SDL and create window
+    if( !init() )
+    {
+        printf( "Failed to initialize!\n" );
+    }
+    else
+    {
+        // draw rectangle
+        draw_rectangle(gScreenSurface, 639, 0, 100, 100);
 
-    SDL_Window *window = SDL_CreateWindow(
-        "SDL2Test",
-        SDL_WINDOWPOS_UNDEFINED,
-        SDL_WINDOWPOS_UNDEFINED,
-        640,
-        480,
-        0
-    );
+        //Update the surface
+        SDL_UpdateWindowSurface( gWindow );
 
-    SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE);
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
-    SDL_RenderClear(renderer);
-    SDL_RenderPresent(renderer);
+        //Hack to get window to stay up
+        SDL_Event e; 
+        bool quit = false; 
+        while( quit == false ) { 
+            while( SDL_PollEvent( &e ) ) { 
+                if( e.type == SDL_QUIT ) quit = true; 
+            } 
+        }
+    }
 
-    SDL_Delay(3000);
+    //Free resources and close SDL
+    close();
 
-    SDL_DestroyWindow(window);
-    SDL_Quit();
+    // SDL_Init(SDL_INIT_VIDEO);
+
+    // SDL_Window *window = SDL_CreateWindow(
+    //     "SDL2Test",
+    //     SDL_WINDOWPOS_UNDEFINED,
+    //     SDL_WINDOWPOS_UNDEFINED,
+    //     640,
+    //     480,
+    //     0
+    // );
+
+    // SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE);
+    // SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
+    // SDL_RenderClear(renderer);
+    // SDL_RenderPresent(renderer);
+
+    // SDL_Delay(3000);
+
+    // SDL_DestroyWindow(window);
+    // SDL_Quit();
 
     return 0;
 }
