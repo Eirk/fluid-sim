@@ -21,14 +21,14 @@ static fast_fluid_solver_t fluid_solver;
 static float dens_prev_buf[(N_sim+2) * (N_sim+2)] = {0};
 static float dens_buf[(N_sim+2) * (N_sim+2)] = {0};
 static float u_prev_buf[(N_sim+2) * (N_sim+2)] = {0};
-static float u_buf[(N_sim+2) * (N_sim+1)] = {0};
+static float u_buf[(N_sim+2) * (N_sim+2)] = {0};
 static float v_prev_buf[(N_sim+2) * (N_sim+2)] = {0};
 static float v_buf[(N_sim+2) * (N_sim+2)] = {0};
 
 float visc = 0.5;
 float diff = 0.5;
 
-float dt = 1.0f / 100.0f; // 100Hz 
+float dt = 1.0f / 50.0f; // 100Hz 
 
 static float src_dens_buf[(N_sim+2) * (N_sim+2)] = {0};
 static float src_u_buf[(N_sim+2) * (N_sim+2)] = {0};
@@ -50,6 +50,28 @@ static void draw_rectangle(SDL_Surface* surface, int x, int y, int width, int he
             pixels[(dx * surface->format->BytesPerPixel) + (dy * surface->pitch)] = 0;
             pixels[(dx * surface->format->BytesPerPixel) + (dy * surface->pitch) + 1] = 255;
             pixels[(dx * surface->format->BytesPerPixel) + (dy * surface->pitch) + 2] = 0;
+        }
+    }
+    memcpy(surface->pixels, pixels, size_pixels);
+    free(pixels);
+
+    SDL_UnlockSurface(surface);
+}
+
+static void draw_fluid(SDL_Surface* surface, float *p_dens, int square_size)
+{
+    SDL_LockSurface(surface);
+
+    int size_pixels = surface->h * surface->pitch;
+    uint8_t *pixels = malloc(size_pixels * sizeof(uint8_t));
+    memset(pixels, 0, size_pixels * sizeof(uint8_t));
+
+    int dy, dx;
+    for (dy = 0; dy < square_size; dy++) {
+        for (dx = 0; dx < square_size; dx++) {
+            pixels[(dx * surface->format->BytesPerPixel) + (dy * surface->pitch)] = (int)(p_dens[IX(dx, dy)] * 255);
+            pixels[(dx * surface->format->BytesPerPixel) + (dy * surface->pitch) + 1] = (int)(p_dens[IX(dx, dy)] * 255);
+            pixels[(dx * surface->format->BytesPerPixel) + (dy * surface->pitch) + 2] = (int)(p_dens[IX(dx, dy)] * 255);
         }
     }
     memcpy(surface->pixels, pixels, size_pixels);
@@ -100,21 +122,25 @@ void close()
 
 int main(int argc, char *argv[]) {
 
-    // fast_fluid_solver_init(&fluid_solver, N_sim, dens_prev_buf, dens_buf, u_prev_buf, u_buf, v_prev_buf, v_buf, visc, diff, dt);
+    fast_fluid_solver_init(&fluid_solver, N_sim, dens_prev_buf, dens_buf, u_prev_buf, u_buf, v_prev_buf, v_buf, visc, diff, dt);
 
-    // // create density source
-    // src_dens_buf[IX(N_sim / 2, N_sim / 2)] = 1.0f;
+    // create density source
+    for(int i = -5; i < 5; i++) {
+        for(int j = -5; j < 5; j++) {
+            src_dens_buf[IX(N_sim / 2 + i, N_sim / 2 + j)] = 1.0f;
+        }
+    }
 
-    // //create velocity field
-    // for(int i = 1; i < N_sim; i++) {
-    //     for(int j = 1; j < N_sim; j++) {
-    //         src_u_buf[IX(i,j)] = -0.5f;
-    //         src_v_buf[IX(i,j)] = 0;
-    //     }
-    // }
+    //create velocity field
+    for(int i = 1; i < N_sim; i++) {
+        for(int j = 1; j < N_sim; j++) {
+            src_u_buf[IX(i,j)] = -0.5f;
+            src_v_buf[IX(i,j)] = 0;
+        }
+    }
 
-    // //compute initial step with sources
-    // fast_fluid_step(&fluid_solver, src_dens_buf, src_u_buf, src_v_buf);
+    //compute initial step with sources
+    fast_fluid_step(&fluid_solver, src_dens_buf, src_u_buf, src_v_buf);
 
     // // compute 10 steps of fluid dynamics
     // for(int i = 0; i < 10; i++) {
@@ -129,10 +155,28 @@ int main(int argc, char *argv[]) {
     else
     {
         // draw rectangle
-        draw_rectangle(gScreenSurface, 639, 0, 100, 100);
+        // draw_rectangle(gScreenSurface, 50, 50, 100, 100);
+
+        //draw to surface
+        draw_fluid(gScreenSurface, dens_prev_buf, N_sim);
 
         //Update the surface
         SDL_UpdateWindowSurface( gWindow );
+        
+        // compute 50 steps of fluid dynamics
+        for(int i = 0; i < 50; i++) {
+            // fast_fluid_step(&fluid_solver, dens_prev_buf, u_prev_buf, v_prev_buf);
+            fast_fluid_step(&fluid_solver, src_dens_buf, src_u_buf, v_prev_buf);
+
+            //draw to surface
+            draw_fluid(gScreenSurface, dens_prev_buf, N_sim);
+
+            //Update the surface
+            SDL_UpdateWindowSurface( gWindow );
+        }
+
+        //Update the surface
+        // SDL_UpdateWindowSurface( gWindow );
 
         //Hack to get window to stay up
         SDL_Event e; 
