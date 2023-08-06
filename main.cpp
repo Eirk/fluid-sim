@@ -1,7 +1,8 @@
+#include <SDL2/SDL.h>
 #include <stdio.h>
 #include <string.h>
-#include <stdbool.h>
-#include "SDL/include/SDL.h"
+// #include <stdbool.h>
+// #include "SDL/include/SDL.h"
 #include "fast_fluid_dynamics.h"
 
 #define SCREEN_WIDTH 640
@@ -10,10 +11,10 @@
 //The window we'll be rendering to
 SDL_Window* gWindow = NULL;
     
-//The surface contained by the window
+// //The surface contained by the window
 SDL_Surface* gScreenSurface = NULL;
 
-//The image we will load and show on the screen
+// //The image we will load and show on the screen
 SDL_Surface* gHelloWorld = NULL;
 
 static fast_fluid_solver_t fluid_solver;
@@ -39,7 +40,7 @@ static void draw_rectangle(SDL_Surface* surface, int x, int y, int width, int he
     SDL_LockSurface(surface);
     // std::vector<uint8_t> pixels(surface->h * surface->pitch, 0);
     int size_pixels = surface->h * surface->pitch;
-    uint8_t *pixels = malloc(size_pixels * sizeof(uint8_t));
+    uint8_t *pixels = (uint8_t *)malloc(size_pixels * sizeof(uint8_t));
     memset(pixels, 0, size_pixels * sizeof(uint8_t));
 
     int dy, dx;
@@ -63,7 +64,7 @@ static void draw_fluid(SDL_Surface* surface, float *p_dens, int square_size)
     SDL_LockSurface(surface);
 
     int size_pixels = surface->h * surface->pitch;
-    uint8_t *pixels = malloc(size_pixels * sizeof(uint8_t));
+    uint8_t *pixels = (uint8_t *)malloc(size_pixels * sizeof(uint8_t));
     memset(pixels, 0, size_pixels * sizeof(uint8_t));
 
     int dy, dx;
@@ -80,16 +81,17 @@ static void draw_fluid(SDL_Surface* surface, float *p_dens, int square_size)
     SDL_UnlockSurface(surface);
 }
 
-bool init()
+int init()
 {
     //Initialization flag
-    bool success = true;
+    // bool success = true;
+    int success;
 
     //Initialize SDL
     if( SDL_Init( SDL_INIT_VIDEO ) < 0 )
     {
         printf( "SDL could not initialize! SDL_Error: %s\n", SDL_GetError() );
-        success = false;
+        success = 0;
     }
     else
     {
@@ -98,7 +100,7 @@ bool init()
         if( gWindow == NULL )
         {
             printf( "Window could not be created! SDL_Error: %s\n", SDL_GetError() );
-            success = false;
+            success = 0;
         }
         else
         {
@@ -139,7 +141,7 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    //compute initial step with sources
+    // //compute initial step with sources
     fast_fluid_step(&fluid_solver, src_dens_buf, src_u_buf, src_v_buf);
 
     // // compute 10 steps of fluid dynamics
