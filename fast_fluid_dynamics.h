@@ -9,13 +9,15 @@ typedef struct {
 } fVector3_t;
 
 typedef struct {
-    int N;              //square area for now
+    // int Nx;              
+    // int Ny;
+    int N;
     float *dens_prev;   // scalar density field previous
-    float *u_prev;      // 'u' component of velocity field previous
-    float *v_prev;      // 'v' component of velocity field previous
+    float *u_prev;      // horizontal component of velocity field previous
+    float *v_prev;      // vertical component of velocity field previous
     float *dens;        // scalar density field
-    float *u;           // 'u' component of velocity field
-    float *v;           // 'v' component of velocity field
+    float *u;           // horizontal component of velocity field
+    float *v;           // vertical component of velocity field
     float visc;         // viscosity
     float diff;         // diffusion rate
     float dt;           // time step (seconds)

@@ -134,12 +134,17 @@ int main(int argc, char *argv[]) {
     }
 
     //create velocity field
-    for(int i = 1; i < N_sim; i++) {
-        for(int j = 1; j < N_sim; j++) {
-            src_u_buf[IX(i,j)] = -0.5f;
-            src_v_buf[IX(i,j)] = 0;
+    for(int i = -2; i < 2; i++) {
+        for(int j = -2; j < 2; j++) {
+            src_u_buf[IX(N_sim / 2 + i, N_sim / 2 + j)] = 10.0f;
         }
     }
+    // for(int i = 1; i < N_sim; i++) {
+    //     for(int j = 1; j < N_sim; j++) {
+    //         src_u_buf[IX(i,j)] = -0.5f;
+    //         src_v_buf[IX(i,j)] = 0;
+    //     }
+    // }
 
     // //compute initial step with sources
     fast_fluid_step(&fluid_solver, src_dens_buf, src_u_buf, src_v_buf);
@@ -166,7 +171,7 @@ int main(int argc, char *argv[]) {
         SDL_UpdateWindowSurface( gWindow );
         
         // compute 50 steps of fluid dynamics
-        for(int i = 0; i < 50; i++) {
+        for(int i = 0; i < 500; i++) {
             // fast_fluid_step(&fluid_solver, dens_prev_buf, u_prev_buf, v_prev_buf);
             fast_fluid_step(&fluid_solver, src_dens_buf, src_u_buf, v_prev_buf);
 
