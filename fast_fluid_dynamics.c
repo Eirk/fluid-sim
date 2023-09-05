@@ -148,11 +148,11 @@ void fast_fluid_solver_init(fast_fluid_solver_t *solver, int N, float *dens_prev
     solver->dt = dt;
 }
 
-void fast_fluid_step(fast_fluid_solver_t *solver, float *dens_prev, float *u_prev, float *v_prev)
+void fast_fluid_step(fast_fluid_solver_t *solver)
 {
-    memcpy(solver->dens_prev, dens_prev, (solver->N + 2) * (solver->N + 2) * sizeof(float));
-    memcpy(solver->u_prev, u_prev, (solver->N + 2) * (solver->N + 2) * sizeof(float));
-    memcpy(solver->v_prev, v_prev, (solver->N + 2) * (solver->N + 2) * sizeof(float));
+    // memcpy(solver->dens_prev, dens_prev, (solver->N + 2) * (solver->N + 2) * sizeof(float));
+    // memcpy(solver->u_prev, u_prev, (solver->N + 2) * (solver->N + 2) * sizeof(float));
+    // memcpy(solver->v_prev, v_prev, (solver->N + 2) * (solver->N + 2) * sizeof(float));
     vel_step(solver->N, solver->u, solver->v, solver->u_prev, solver->v_prev, solver->visc, solver->dt);
     dens_step(solver->N, solver->dens, solver->dens_prev, solver->u, solver->v, solver->diff, solver->dt);
 }

@@ -26,7 +26,7 @@ extern "C"{
 #endif
 
 void fast_fluid_solver_init(fast_fluid_solver_t *solver, int N, float *dens_prev_buf, float *dens_buf, float *u_prev_buf, float *u_buf, float *v_prev_buf, float *v_buf, float visc, float diff, float dt);
-void fast_fluid_step(fast_fluid_solver_t *solver, float *dens_prev, float *u_prev, float *v_prev);
+void fast_fluid_step(fast_fluid_solver_t *solver);
 
 #ifdef __cplusplus
 }
