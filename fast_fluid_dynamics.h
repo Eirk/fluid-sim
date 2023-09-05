@@ -1,4 +1,4 @@
-#define N_sim 32 // simulate grid of size NxN
+#define N_sim 128 // simulate grid of size NxN
 #define IX(i,j) ((i)+(N_sim+2)*(j)) // macro to index into 2d grid represented by 1d arrays
 #define SWAP(x0,x) {float *tmp = x0; x0 = x; x = tmp;}
 

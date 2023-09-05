@@ -27,7 +27,7 @@ static float v_prev_buf[(N_sim+2) * (N_sim+2)] = {0};
 static float v_buf[(N_sim+2) * (N_sim+2)] = {0};
 
 float visc = 0.0;
-float diff = 0.0;
+float diff = 0.00002;
 
 float dt = 1.0f / 50.0f; // 100Hz 
 
@@ -129,14 +129,14 @@ int main(int argc, char *argv[]) {
 
     fast_fluid_solver_init(&fluid_solver, N_sim, dens_prev_buf, dens_buf, u_prev_buf, u_buf, v_prev_buf, v_buf, visc, diff, dt);
 
-    // create density source
+    // initialize density source
     for(int i = -5; i < 5; i++) {
         for(int j = -5; j < 5; j++) {
             dens_prev_buf[IX(N_sim / 2 + i, N_sim / 2 + j)] = 0.0f;
         }
     }
 
-    //create velocity field
+    //initiliaze velocity field
     for(int i = 1; i < N_sim; i++) {
         for(int j = 1; j < N_sim; j++) {
             u_prev_buf[IX(i,j)] = 0.0f;
@@ -144,13 +144,18 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    // //compute initial step with sources
-    // fast_fluid_step(&fluid_solver);
+    // create initial density
+    for(int i = -3; i < 3; i++) {
+        for(int j = -3; j < 3; j++) {
+            // fluid_solver.dens_prev[IX(N_sim / 2 + i, N_sim / 2 + j)] = 0.5f;
+            fluid_solver.dens[IX(N_sim / 2 + i, N_sim / 2 + j)] = 0.75f;
+        }
+    }
 
-    // // compute 10 steps of fluid dynamics
-    // for(int i = 0; i < 10; i++) {
-    //     fast_fluid_step(&fluid_solver, dens_prev_buf, u_prev_buf, v_prev_buf);
-    // }
+    // create initial horizontal velocity
+    for(int i = N_sim / 2 - 20; i < N_sim / 2 + 20; i++) {
+        fluid_solver.u[IX(i, (N_sim / 2))] = 0.9;
+    }
 
     //Start up SDL and create window
     if( !init() )
@@ -159,36 +164,11 @@ int main(int argc, char *argv[]) {
     }
     else
     {
-        // draw rectangle
-        // draw_rectangle(gScreenSurface, 50, 50, 100, 100);
-
-        for(int i = -3; i < 3; i++) {
-            for(int j = -3; j < 3; j++) {
-                fluid_solver.dens_prev[IX(N_sim / 2 + i, N_sim / 2 + j)] = 0.5f;
-                fluid_solver.dens[IX(N_sim / 2 + i, N_sim / 2 + j)] = 0.5f;
-            }
-        }
-
         //draw to surface
-        draw_fluid(gScreenSurface, dens_prev_buf, N_sim);
+        draw_fluid(gScreenSurface, fluid_solver.dens, N_sim);
 
         //Update the surface
         SDL_UpdateWindowSurface( gWindow );
-        
-        // compute 50 steps of fluid dynamics
-        // for(int i = 0; i < 50; i++) {
-        //     // fast_fluid_step(&fluid_solver, dens_prev_buf, u_prev_buf, v_prev_buf);
-        //     fast_fluid_step(&fluid_solver, src_dens_buf, src_u_buf, v_prev_buf);
-
-        //     //draw to surface
-        //     draw_fluid(gScreenSurface, dens_prev_buf, N_sim);
-
-        //     //Update the surface
-        //     SDL_UpdateWindowSurface( gWindow );
-        // }
-
-        //Update the surface
-        // SDL_UpdateWindowSurface( gWindow );
 
         //Hack to get window to stay up
         SDL_Event e; 
@@ -201,14 +181,7 @@ int main(int argc, char *argv[]) {
                 currTime = SDL_GetTicks();
                 elapsedTime = (currTime - startTime) / 1000.0;
                 if(elapsedTime >= dt) {
-                    for(int i = 1; i < N_sim; i++) {
-                        fluid_solver.u_prev[IX(i, (N_sim / 2))] = 0.5;
-                    }
-                    // for(int i = -3; i < 3; i++) {
-                    //     for(int j = -3; j < 3; j++) {
-                    //         fluid_solver.dens_prev[IX(N_sim / 2 + i, N_sim / 2 + j)] = 0.5f;
-                    //     }
-                    // }
+
                     fast_fluid_step(&fluid_solver);
 
                     //draw to surface
@@ -225,27 +198,6 @@ int main(int argc, char *argv[]) {
 
     //Free resources and close SDL
     close();
-
-    // SDL_Init(SDL_INIT_VIDEO);
-
-    // SDL_Window *window = SDL_CreateWindow(
-    //     "SDL2Test",
-    //     SDL_WINDOWPOS_UNDEFINED,
-    //     SDL_WINDOWPOS_UNDEFINED,
-    //     640,
-    //     480,
-    //     0
-    // );
-
-    // SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE);
-    // SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
-    // SDL_RenderClear(renderer);
-    // SDL_RenderPresent(renderer);
-
-    // SDL_Delay(3000);
-
-    // SDL_DestroyWindow(window);
-    // SDL_Quit();
 
     return 0;
 }
