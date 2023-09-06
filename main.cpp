@@ -31,10 +31,6 @@ float diff = 0.00002;
 
 float dt = 1.0f / 50.0f; // 100Hz 
 
-static float src_dens_buf[(N_sim+2) * (N_sim+2)] = {0};
-static float src_u_buf[(N_sim+2) * (N_sim+2)] = {0};
-static float src_v_buf[(N_sim+2) * (N_sim+2)] = {0};
-
 static void draw_rectangle(SDL_Surface* surface, int x, int y, int width, int height)
 {
     SDL_LockSurface(surface);
@@ -132,7 +128,7 @@ int main(int argc, char *argv[]) {
     // initialize density source
     for(int i = -5; i < 5; i++) {
         for(int j = -5; j < 5; j++) {
-            dens_prev_buf[IX(N_sim / 2 + i, N_sim / 2 + j)] = 0.0f;
+            fluid_solver.dens[IX(N_sim / 2 + i, N_sim / 2 + j)] = 0.0f;
         }
     }
 
@@ -148,13 +144,13 @@ int main(int argc, char *argv[]) {
     for(int i = -3; i < 3; i++) {
         for(int j = -3; j < 3; j++) {
             // fluid_solver.dens_prev[IX(N_sim / 2 + i, N_sim / 2 + j)] = 0.5f;
-            fluid_solver.dens[IX(N_sim / 2 + i, N_sim / 2 + j)] = 0.75f;
+            fluid_solver.dens_prev[IX(N_sim / 2 + i, N_sim / 2 + j)] = 0.0f;
         }
     }
 
     // create initial horizontal velocity
     for(int i = N_sim / 2 - 20; i < N_sim / 2 + 20; i++) {
-        fluid_solver.u[IX(i, (N_sim / 2))] = 0.9;
+        fluid_solver.u_prev[IX(i, (N_sim / 2))] = 0.0;
     }
 
     //Start up SDL and create window
@@ -181,6 +177,15 @@ int main(int argc, char *argv[]) {
                 currTime = SDL_GetTicks();
                 elapsedTime = (currTime - startTime) / 1000.0;
                 if(elapsedTime >= dt) {
+                    for(int i = -3; i < 3; i++) {
+                        for(int j = -3; j < 3; j++) {
+                            fluid_solver.dens_prev[IX(N_sim / 2 + i, N_sim / 2 + j)] = 0.5f;
+                        }
+                    }
+
+                    for(int i = N_sim / 2 - 20; i < N_sim / 2 + 20; i++) {
+                        fluid_solver.u_prev[IX(i, (N_sim / 2))] = 0.5;
+                    }
 
                     fast_fluid_step(&fluid_solver);
 
