@@ -27,7 +27,7 @@ static float v_prev_buf[(N_sim+2) * (N_sim+2)] = {0};
 static float v_buf[(N_sim+2) * (N_sim+2)] = {0};
 
 float visc = 0.0;
-float diff = 0.00002;
+float diff = 0.000001;
 
 float dt = 1.0f / 50.0f; // 100Hz 
 
@@ -140,17 +140,9 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    // create initial density
-    for(int i = -3; i < 3; i++) {
-        for(int j = -3; j < 3; j++) {
-            // fluid_solver.dens_prev[IX(N_sim / 2 + i, N_sim / 2 + j)] = 0.5f;
-            fluid_solver.dens_prev[IX(N_sim / 2 + i, N_sim / 2 + j)] = 0.0f;
-        }
-    }
-
     // create initial horizontal velocity
-    for(int i = N_sim / 2 - 20; i < N_sim / 2 + 20; i++) {
-        fluid_solver.u_prev[IX(i, (N_sim / 2))] = 0.0;
+    for(int i = N_sim / 2 - 5; i < N_sim / 2 + 5; i++) {
+        fluid_solver.u[IX(i, (N_sim / 2))] = 0.5;
     }
 
     //Start up SDL and create window
@@ -169,6 +161,9 @@ int main(int argc, char *argv[]) {
         //Hack to get window to stay up
         SDL_Event e; 
         bool quit = false; 
+
+        float dens_sum = 0;
+        float u_sum = 0;
         while( quit == false ) { 
             while( SDL_PollEvent( &e ) ) { 
                 
@@ -177,14 +172,20 @@ int main(int argc, char *argv[]) {
                 currTime = SDL_GetTicks();
                 elapsedTime = (currTime - startTime) / 1000.0;
                 if(elapsedTime >= dt) {
-                    for(int i = -3; i < 3; i++) {
-                        for(int j = -3; j < 3; j++) {
-                            fluid_solver.dens_prev[IX(N_sim / 2 + i, N_sim / 2 + j)] = 0.5f;
-                        }
+                    dens_sum = 0;
+                    u_sum = 0;
+                    for(int i = 0; i < (N_sim+2)*(N_sim+2); i++) {
+                        dens_sum += fluid_solver.dens[i];
+                        u_sum += fluid_solver.u[i];
+                        fluid_solver.dens_prev[i] = 0.0f;
+                        fluid_solver.u_prev[i] = 0.0f;
+                        fluid_solver.v_prev[i] = 0.0f;
                     }
-
-                    for(int i = N_sim / 2 - 20; i < N_sim / 2 + 20; i++) {
-                        fluid_solver.u_prev[IX(i, (N_sim / 2))] = 0.5;
+                    for(int i = -4; i < 4; i++) {
+                        for(int j = -4; j < 4; j++) {
+                            fluid_solver.dens_prev[IX(N_sim / 2 + i, N_sim / 2 + j)] = 1.0f;
+                            fluid_solver.u_prev[IX(N_sim / 2 + i, N_sim / 2 + j)] = 1.0f;
+                        }
                     }
 
                     fast_fluid_step(&fluid_solver);
